@@ -1,0 +1,22 @@
+[project]
+name = "agentaudit"
+version = "0.1.0"
+description = "A failure-injection testing framework for AI agents"
+readme = "README.md"
+authors = [
+    { name = "Thorium", email = "csthorium18@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "groq>=1.6.0",
+    "python-dotenv>=1.2.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.4,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
