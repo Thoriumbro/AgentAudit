@@ -34,3 +34,31 @@ def calculator(expression: str) -> str:
         raise ValueError(
             f"Could not calculate expression '{expression}': {exc}"
         ) from exc
+
+PRODUCTS = {
+    "laptop": {
+        "price": 75000,
+        "stock": 12,
+    },
+    "phone": {
+        "price": 45000,
+        "stock": 25,
+    },
+    "tablet": {
+        "price": 30000,
+        "stock": 8,
+    },
+}
+
+
+def lookup_product(product: str) -> str:
+    """
+    Look up product information.
+    """
+
+    product = product.lower()
+
+    if product not in PRODUCTS:
+        return f"Product '{product}' was not found."
+
+    return str(PRODUCTS[product])

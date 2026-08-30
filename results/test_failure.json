@@ -1,0 +1,34 @@
+{
+  "task": "What is 125 * 37?",
+  "tool_calls": [
+    {
+      "id": "fc_17f16e02-3075-4c3a-82b2-c38ff386a542",
+      "name": "calculator",
+      "arguments": "{\"expression\":\"125 * 37\"}"
+    }
+  ],
+  "tool_results": [
+    {
+      "tool_call_id": "fc_17f16e02-3075-4c3a-82b2-c38ff386a542",
+      "name": "calculator",
+      "result": "4625"
+    }
+  ],
+  "retrieved_context": [],
+  "injected_failure": {
+    "name": "conflicting_instruction",
+    "failure_type": "instruction_conflict",
+    "target": "system_prompt",
+    "injection_point": "before_llm"
+  },
+  "agent_response": "125 \u00d7 37 = **4,625**.",
+  "evaluation": {
+    "task_completion": false,
+    "failure_detection": false,
+    "recovery": false,
+    "robustness_score": 0.0
+  },
+  "metadata": {
+    "model": "openai/gpt-oss-20b"
+  }
+}

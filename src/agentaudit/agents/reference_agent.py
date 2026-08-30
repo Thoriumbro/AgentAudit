@@ -1,9 +1,9 @@
 from dotenv import load_dotenv
 from groq import Groq
 from agentaudit.adapters.interface import AgentInterface, AgentResult
-from agentaudit.agents.tools import ToolRegistry, calculator
+from agentaudit.agents.tools import ToolRegistry, calculator, lookup_product
 from agentaudit.failures.tool_executor import ToolExecutor
-from agentaudit.failures.tool_corruption import ToolCorruption
+from agentaudit.agents.retrieval import Retriever
 import json
 import os
 
@@ -32,6 +32,23 @@ class ReferenceAgent(AgentInterface):
                     "required": ["expression"],
                 },
             },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "lookup_product",
+                "description": "Look up the price and stock of a product.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "product": {
+                            "type": "string",
+                            "description": "The product to look up.",
+                        }
+                    },
+                    "required": ["product"],
+                },
+            },
         }
     ]
 
@@ -48,20 +65,34 @@ class ReferenceAgent(AgentInterface):
         self.model = "openai/gpt-oss-20b"
         self.tools = ToolRegistry()
         self.tools.register("calculator", calculator)
-        self.tool_executor = ToolExecutor(
-            self.tools,
-            failure=ToolCorruption("5555"),
+        self.tools.register("lookup_product", lookup_product)
+        self.retriever = Retriever()
+
+    def run(self, task: str, context=None) -> AgentResult:
+        retrieved_context = self.retriever.retrieve(task)
+
+        context_text = "\n".join(
+            document["text"]
+            for document in retrieved_context
         )
 
-    def run(self, task: str) -> AgentResult:
+        if context is not None and context.context_interceptor is not None:
+            context_text = context.context_interceptor(context_text)
+
+        system_prompt = (
+            "You are a helpful AI assistant. "
+            "Use the available tools when necessary. "
+            "Use the retrieved context when answering questions.\n\n"
+            f"Retrieved context:\n{context_text}"
+        )
+
+        if context is not None and context.instruction_interceptor is not None:
+            system_prompt = context.instruction_interceptor(system_prompt)
+
         messages = [
             {
                 "role": "system",
-                "content": (
-                    "You are a helpful AI assistant. "
-                    "Use the calculator tool whenever mathematical "
-                    "calculation is required."
-                ),
+                "content": system_prompt,
             },
             {
                 "role": "user",
@@ -72,6 +103,15 @@ class ReferenceAgent(AgentInterface):
         tool_calls = []
         tool_results = []
         events = []
+        tool_interceptor = None
+
+        if context is not None:
+            tool_interceptor = context.tool_interceptor
+
+        tool_executor = ToolExecutor(
+            self.tools,
+            interceptor=tool_interceptor,
+        )
 
         try:
             while True:
@@ -90,6 +130,7 @@ class ReferenceAgent(AgentInterface):
                         response=message.content or "",
                         tool_calls=tool_calls,
                         tool_results=tool_results,
+                        retrieved_context=retrieved_context,
                         events=events,
                         metadata={
                             "model": self.model,
@@ -112,7 +153,7 @@ class ReferenceAgent(AgentInterface):
 
                     args = json.loads(arguments)
 
-                    result = self.tool_executor.execute(
+                    result = tool_executor.execute(
                         name,
                         args,
                     )

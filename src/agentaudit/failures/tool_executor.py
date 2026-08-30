@@ -1,25 +1,21 @@
-from typing import Any, Callable
+from typing import Any
 
 from agentaudit.agents.tools import ToolRegistry
 
 
 class ToolExecutor:
-    """
-    Executes tools and optionally applies a failure to their results.
-    """
-
-    def __init__(self, registry: ToolRegistry, failure=None):
+    def __init__(self, registry, interceptor=None):
         self.registry = registry
-        self.failure = failure
+        self.interceptor = interceptor
 
-    def execute(self, name: str, arguments: dict[str, Any]) -> Any:
-        """
-        Execute a tool and optionally modify its result.
-        """
-
+    def execute(self, name, arguments):
         result = self.registry.execute(name, arguments)
 
-        if self.failure is not None:
-            result = self.failure.apply(result)
+        if self.interceptor is not None:
+            result = self.interceptor(
+                name,
+                arguments,
+                result,
+            )
 
         return result

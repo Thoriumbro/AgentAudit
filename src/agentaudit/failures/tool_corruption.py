@@ -14,3 +14,6 @@ class ToolCorruption:
         Replace the original tool result with corrupted data.
         """
         return self.corrupted_value
+
+    def intercept(self, name, arguments, result):
+        return self.apply(result)
