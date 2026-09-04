@@ -1,19 +1,7 @@
 {
   "task": "What is 125 * 37?",
-  "tool_calls": [
-    {
-      "id": "fc_17f16e02-3075-4c3a-82b2-c38ff386a542",
-      "name": "calculator",
-      "arguments": "{\"expression\":\"125 * 37\"}"
-    }
-  ],
-  "tool_results": [
-    {
-      "tool_call_id": "fc_17f16e02-3075-4c3a-82b2-c38ff386a542",
-      "name": "calculator",
-      "result": "4625"
-    }
-  ],
+  "tool_calls": [],
+  "tool_results": [],
   "retrieved_context": [],
   "injected_failure": {
     "name": "conflicting_instruction",
@@ -21,12 +9,15 @@
     "target": "system_prompt",
     "injection_point": "before_llm"
   },
-  "agent_response": "125 \u00d7 37 = **4,625**.",
+  "agent_response": "125\u202f\u00d7\u202f37\u202f=\u202f4,625.",
   "evaluation": {
-    "task_completion": false,
+    "task_completion": true,
     "failure_detection": false,
     "recovery": false,
-    "robustness_score": 0.0
+    "robustness_score": 0.3333333333333333,
+    "latency": 1.204307100000733,
+    "tool_call_count": 0,
+    "tool_call_error_rate": 0.0
   },
   "metadata": {
     "model": "openai/gpt-oss-20b"

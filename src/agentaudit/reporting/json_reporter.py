@@ -1,14 +1,23 @@
 import json
-from pathlib import Path
 
-from agentaudit.tracing.trace import ExecutionTrace
 
 class JSONReporter:
+    """
+    Saves execution traces and aggregate metrics as JSON.
+    """
 
-    def save(self, trace: ExecutionTrace, path: str) -> None:
-        output = trace.to_dict()
+    def save(self, trace, path, metrics=None):
+        output = {
+            "trace": trace.to_dict(),
+        }
 
-        Path(path).write_text(
-            json.dumps(output, indent=2),
-            encoding="utf-8",
-        )
+        if metrics is not None:
+            output["aggregate_metrics"] = metrics.__dict__
+
+        with open(path, "w", encoding="utf-8") as file:
+            json.dump(
+                output,
+                file,
+                indent=4,
+                ensure_ascii=False,
+            )

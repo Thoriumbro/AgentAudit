@@ -2,6 +2,8 @@ from agentaudit.adapters.interface import AgentInterface, AgentResult
 from agentaudit.scenarios.scenario import FailureScenario
 from agentaudit.tracing.trace import ExecutionTrace
 from agentaudit.adapters.context import ExecutionContext
+from agentaudit.evaluation.aggregator import MetricsAggregator
+import time
 
 
 class AgentAudit:
@@ -14,6 +16,7 @@ class AgentAudit:
         self.scenario = scenario
         self.evaluator = evaluator
         self.last_trace = None
+        self.metrics = MetricsAggregator()
 
     def run(self, task: str) -> AgentResult:
         """
@@ -22,6 +25,7 @@ class AgentAudit:
 
         interceptor = None
         context_interceptor = None
+        instruction_interceptor = None
 
         if self.scenario is not None:
             if self.scenario.failure_type == "tool_corruption":
@@ -39,10 +43,14 @@ class AgentAudit:
             instruction_interceptor=instruction_interceptor,
         )
 
+        start_time = time.perf_counter()
+
         result = self.agent.run(
             task,
             context=context,
         )
+
+        latency = time.perf_counter() - start_time
 
         evaluation = None
 
@@ -51,7 +59,12 @@ class AgentAudit:
                 task=task,
                 response=result.response,
                 scenario=self.scenario,
+                tool_calls=result.tool_calls,
+                tool_results=result.tool_results,
+                latency=latency,
             )
+
+        self.metrics.add(evaluation)
 
         trace = ExecutionTrace(
             task=task,
